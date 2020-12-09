@@ -51,8 +51,8 @@ Adafruit_SCD30::Adafruit_SCD30(void) {}
 Adafruit_SCD30::~Adafruit_SCD30(void) {
   if (temp_sensor)
     delete temp_sensor;
-  if (pressure_sensor)
-    delete pressure_sensor;
+  if (humidity_sensor)
+    delete humidity_sensor;
 }
 
 /*!
@@ -75,6 +75,7 @@ bool Adafruit_SCD30::begin_I2C(uint8_t i2c_address, TwoWire *wire,
   i2c_dev = new Adafruit_I2CDevice(i2c_address, wire);
 
   if (!i2c_dev->begin()) {
+    Serial.print("bad begin to "); Serial.println(i2c_address);
     return false;
   }
 
@@ -141,27 +142,20 @@ bool Adafruit_SCD30::begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin,
  */
 bool Adafruit_SCD30::_init(int32_t sensor_id) {
 
-  Adafruit_BusIO_Register chip_id = Adafruit_BusIO_Register(
-      i2c_dev, spi_dev, ADDRBIT8_HIGH_TOREAD, SCD30_WHOAMI, 1);
-
-  // make sure we're talking to the right chip
-  if (chip_id.read() != SCD30_CHIP_ID) {
-    return false;
-  }
-  _sensorid_pressure = sensor_id;
+  // uint16_t chip_id = sendCommand(SCD30_CMD_)
+  Serial.print("init, so far so good"); Serial.println();
+  _sensorid_humidity = sensor_id;
   _sensorid_temp = sensor_id + 1;
 
   reset();
   // do any software reset or other initial setup
 
-  // Set to highest rate
-  setDataRate(SCD30_RATE_25_HZ);
-  
+  // // Set to highest rate
+  // setDataRate(SCD30_RATE_25_HZ);
 
-  // TODO: update for correct sensor types
-  pressure_sensor = new Adafruit_SCD30_Pressure(this);
-  temp_sensor = new Adafruit_SCD30_Temp(this);
-  
+  // humidity_sensor = new Adafruit_SCD30_Humidity(this);
+  // temp_sensor = new Adafruit_SCD30_Temp(this);
+  Serial.print("returning "); Serial.println("true");
   return true;
 }
 
@@ -171,43 +165,33 @@ bool Adafruit_SCD30::_init(int32_t sensor_id) {
  *
  */
 void Adafruit_SCD30::reset(void) {
-  Adafruit_BusIO_Register ctrl_2 = Adafruit_BusIO_Register(
-      i2c_dev, spi_dev, ADDRBIT8_HIGH_TOREAD, SCD30_CTRL_REG2, 1);
-  Adafruit_BusIO_RegisterBits sw_reset =
-      Adafruit_BusIO_RegisterBits(&ctrl_2, 1, 2);
-
-  sw_reset.write(1);
-  while (sw_reset.read()) {
-    delay(1);
-  }
+  sendCommand(SCD30_CMD_SOFT_RESET);
+  Serial.print("sent reset command"); Serial.println("delaying 30");
+  delay(30);
 }
+// nit, so far so good
+	// I2CWRITE @ 0x61 :: 0x4, 0xD3, 0x0, 0x0, 0x81,
+  // #define SCD30_CMD_SOFT_RESET 0xD304 ///< Soft reset!
 
-/**
- * @brief Gets the current rate at which pressure and temperature measurements
- * are taken
- *
- * @return scd30_rate_t The current data rate
- */
-scd30_rate_t Adafruit_SCD30::getDataRate(void) {
-  Adafruit_BusIO_Register ctrl1 = Adafruit_BusIO_Register(
-      i2c_dev, spi_dev, ADDRBIT8_HIGH_TOREAD, SCD30_CTRL_REG1, 1);
-  Adafruit_BusIO_RegisterBits data_rate =
-      Adafruit_BusIO_RegisterBits(&ctrl1, 3, 4);
+bool Adafruit_SCD30::sendCommand(uint16_t command){
+  Adafruit_BusIO_Register _command = Adafruit_BusIO_Register(i2c_dev, command, 2, MSBFIRST, 2);
+  uint8_t buffer[3];
 
-  return (scd30_rate_t)data_rate.read();
+  return _command.write(buffer, 0); // may not work? should send command/reg, then buffer as one txn
+
 }
-/**
- * @brief Sets the rate at which pressure and temperature measurements
- *
- * @param new_data_rate The data rate to set. Must be a `scd30_rate_t`
- */
-void Adafruit_SCD30::setDataRate(scd30_rate_t new_data_rate) {
-  Adafruit_BusIO_Register ctrl1 = Adafruit_BusIO_Register(
-      i2c_dev, spi_dev, ADDRBIT8_HIGH_TOREAD, SCD30_CTRL_REG1, 1);
-  Adafruit_BusIO_RegisterBits data_rate =
-      Adafruit_BusIO_RegisterBits(&ctrl1, 3, 4);
+bool Adafruit_SCD30::sendCommand(uint16_t command, uint16_t argument){
+  Adafruit_BusIO_Register _command = Adafruit_BusIO_Register(i2c_dev, command, 2, MSBFIRST, 2);
+  uint8_t buffer[3];
+  buffer[0] = argument >>8;
+  buffer[1] = argument & 0xFF;
+  buffer[2] = crc8(buffer, 2);
+  _command.write(buffer, 3); // may not work? should send command/reg, then buffer as one txn
 
-  data_rate.write((uint8_t)new_data_rate);
+}
+uint16_t Adafruit_SCD30::readRegister(uint16_t reg_address){
+  Adafruit_BusIO_Register _register = Adafruit_BusIO_Register(i2c_dev, reg_address, 2, MSBFIRST, 2);
+  return _register.read();
 }
 
 /******************* Adafruit_Sensor functions *****************/
@@ -216,79 +200,25 @@ void Adafruit_SCD30::setDataRate(scd30_rate_t new_data_rate) {
  */
 /**************************************************************************/
 void Adafruit_SCD30::_read(void) {
-  // get raw readings
+  Adafruit_BusIO_Register _data_register = Adafruit_BusIO_Register(i2c_dev, SCD30_CMD_READ_MEASUREMENT, 2, MSBFIRST, 2);
+  uint8_t buffer[18];
 
-  // TODO: Update for sensor types and enable multi-byte read if needed
-  // uint8_t pressure_addr = SCD30_PRESS_OUT_XL;
-  // uint8_t temp_addr = SCD30_TEMP_OUT_L;
-  // if (spi_dev) {
-  //   // for SCD30 SPI, addr[7] is r/w, addr[6] is auto increment
-  //   pressure_addr |= 0x40;
-  //   temp_addr |= 0x40;
-  // }
-
-
-
-  // TODO: use this block to manually pack bytes and fix sign
-  // Adafruit_BusIO_Register pressure_data = Adafruit_BusIO_Register(
-  //     i2c_dev, spi_dev, ADDRBIT8_HIGH_TOREAD, pressure_addr, 3);
-
-  // Adafruit_BusIO_Register temp_data = Adafruit_BusIO_Register(
-  //     i2c_dev, spi_dev, ADDRBIT8_HIGH_TOREAD, temp_addr, 2);
-
-  // uint8_t buffer[3];
-
-  // temp_data.read(buffer, 2);
-  // int16_t raw_temp;
-
-  // raw_temp |= (int16_t)(buffer[1]);
-  // raw_temp <<= 8;
-  // raw_temp |= (int16_t)(buffer[0]);
-
-  // pressure_data.read(buffer, 3);
-  // int32_t raw_pressure;
-
-  // raw_pressure = (int32_t)buffer[2];
-  // raw_pressure <<= 8;
-  // raw_pressure |= (int32_t)(buffer[1]);
-  // raw_pressure <<= 8;
-  // raw_pressure |= (int32_t)(buffer[0]);
-
-  // // TODO: This can be done by casting to signed type
-  // if (raw_temp & 0x8000) {
-  //   raw_temp = raw_temp - 0xFFFF;
-  // }
-  // unscaled_temp = raw_temp;
-
-  // if (raw_pressure & 0x800000) {
-  //   raw_pressure = raw_pressure - 0xFFFFFF;
-  // }
-
-
-
-  Adafruit_BusIO_Register to_out =
-      Adafruit_BusIO_Register(i2c_dev, spi_dev, ADDRBIT8_HIGH_TOREAD,
-                              (HTS221_T0_OUT | multi_byte_address_mask), 2);
-  Adafruit_BusIO_Register t1_out =
-      Adafruit_BusIO_Register(i2c_dev, spi_dev, ADDRBIT8_HIGH_TOREAD,
-                              (HTS221_T1_OUT | multi_byte_address_mask), 2);
-
-  to_out.read(&T0_OUT);
-  t1_out.read(&T1_OUT);
-
-
-
-  unscaled_pressure = raw_pressure;
+  _data_register.read(buffer, 18);
+  // setup buffers
+  // create register objs
+  // read into buffers
+  // stitch bytes together
+  // check crcs
+  // scale/convert
 }
-
 
 /*!
     @brief  Gets an Adafruit Unified Sensor object for the presure sensor
    component
-    @return Adafruit_Sensor pointer to pressure sensor
+    @return Adafruit_Sensor pointer to humidity sensor
  */
-Adafruit_Sensor *Adafruit_SCD30::getPressureSensor(void) {
-  return pressure_sensor;
+Adafruit_Sensor *Adafruit_SCD30::getHumiditySensor(void) {
+  return humidity_sensor;
 }
 
 /*!
@@ -301,33 +231,33 @@ Adafruit_Sensor *Adafruit_SCD30::getTemperatureSensor(void) {
 
 /**************************************************************************/
 /*!
-    @brief  Gets the pressure sensor and temperature values as sensor events
-    @param  pressure Sensor event object that will be populated with pressure
+    @brief  Gets the humidity sensor and temperature values as sensor events
+    @param  humidity Sensor event object that will be populated with humidity
    data
     @param  temp Sensor event object that will be populated with temp data
     @returns True
 */
 /**************************************************************************/
-bool Adafruit_SCD30::getEvent(sensors_event_t *pressure,
+bool Adafruit_SCD30::getEvent(sensors_event_t *humidity,
                               sensors_event_t *temp) {
   uint32_t t = millis();
   _read();
 
   // use helpers to fill in the events
-  fillPressureEvent(pressure, t);
+  fillHumidityEvent(humidity, t);
   fillTempEvent(temp, t);
   return true;
 }
 
 
-void Adafruit_SCD30::fillPressureEvent(sensors_event_t *pressure,
+void Adafruit_SCD30::fillHumidityEvent(sensors_event_t *humidity,
                                        uint32_t timestamp) {
-  memset(pressure, 0, sizeof(sensors_event_t));
-  pressure->version = sizeof(sensors_event_t);
-  pressure->sensor_id = _sensorid_pressure;
-  pressure->type = SENSOR_TYPE_PRESSURE;
-  pressure->timestamp = timestamp;
-  pressure->pressure = (unscaled_pressure / 4096.0);
+  memset(humidity, 0, sizeof(sensors_event_t));
+  humidity->version = sizeof(sensors_event_t);
+  humidity->sensor_id = _sensorid_humidity;
+  humidity->type = SENSOR_TYPE_RELATIVE_HUMIDITY;
+  humidity->timestamp = timestamp;
+  humidity->relative_humidity = (unscaled_humidity / 4096.0);
 }
 
 void Adafruit_SCD30::fillTempEvent(sensors_event_t *temp, uint32_t timestamp) {
@@ -344,7 +274,7 @@ void Adafruit_SCD30::fillTempEvent(sensors_event_t *temp, uint32_t timestamp) {
     @brief  Gets the sensor_t data for the SCD30's tenperature
 */
 /**************************************************************************/
-void Adafruit_SCD30_Pressure::getSensor(sensor_t *sensor) {
+void Adafruit_SCD30_Humidity::getSensor(sensor_t *sensor) {
   /* Clear the sensor_t object */
   memset(sensor, 0, sizeof(sensor_t));
 
@@ -363,14 +293,14 @@ void Adafruit_SCD30_Pressure::getSensor(sensor_t *sensor) {
 
 /**************************************************************************/
 /*!
-    @brief  Gets the pressure as a standard sensor event
+    @brief  Gets the humidity as a standard sensor event
     @param  event Sensor event object that will be populated
     @returns True
 */
 /**************************************************************************/
-bool Adafruit_SCD30_Pressure::getEvent(sensors_event_t *event) {
+bool Adafruit_SCD30_Humidity::getEvent(sensors_event_t *event) {
   _theSCD30->_read();
-  _theSCD30->fillPressureEvent(event, millis());
+  _theSCD30->fillHumidityEvent(event, millis());
 
   return true;
 }
@@ -411,16 +341,36 @@ bool Adafruit_SCD30_Temp::getEvent(sensors_event_t *event) {
   return true;
 }
 
-/**
- * @brief Sets the polarity of the INT pin.
- *
- * @param active_low Set to true to make the pin active low
- */
-void Adafruit_SCD30::interruptsActiveLow(bool active_low) {
-  Adafruit_BusIO_Register ctrl3 = Adafruit_BusIO_Register(
-      i2c_dev, spi_dev, ADDRBIT8_HIGH_TOREAD, SCD30_CTRL_REG3, 1);
 
-  Adafruit_BusIO_RegisterBits active_low_bit =
-      Adafruit_BusIO_RegisterBits(&ctrl3, 1, 7);
-  active_low_bit.write(active_low);
+/**
+ * Performs a CRC8 calculation on the supplied values.
+ *
+ * @param data  Pointer to the data to use when calculating the CRC8.
+ * @param len   The number of bytes in 'data'.
+ *
+ * @return The computed CRC8 value.
+ */
+static uint8_t crc8(const uint8_t *data, int len) {
+  /*
+   *
+   * CRC-8 formula from page 14 of SHT spec pdf
+   *
+   * Test data 0xBE, 0xEF should yield 0x92
+   *
+   * Initialization data 0xFF
+   * Polynomial 0x31 (x8 + x5 +x4 +1)
+   * Final XOR 0x00
+   */
+
+  const uint8_t POLYNOMIAL(0x31);
+  uint8_t crc(0xFF);
+
+  for (int j = len; j; --j) {
+    crc ^= *data++;
+
+    for (int i = 8; i; --i) {
+      crc = (crc & 0x80) ? (crc << 1) ^ POLYNOMIAL : (crc << 1);
+    }
+  }
+  return crc;
 }

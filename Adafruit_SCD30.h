@@ -12,8 +12,7 @@
  *
  *	 license (see license.txt)
  */
-  // "requires_busio": "y",
-  //   "requires_sensor": "y",
+
 #ifndef _ADAFRUIT_SCD30_H
 #define _ADAFRUIT_SCD30_H
 
@@ -21,10 +20,23 @@
 #include <Adafruit_BusIO_Register.h>
 #include <Adafruit_I2CDevice.h>
 #include <Adafruit_Sensor.h>
-#include <Wire.h>#define SCD30_I2CADDR_DEFAULT 0x60 ///< SCD30 default i2c address
+#include <Wire.h>
+#define SCD30_I2CADDR_DEFAULT 0x61 ///< SCD30 default i2c address
 #define SCD30_CHIP_ID 0x60 ///< SCD30 default device id from WHOAMI
 
 #define SCD30_WHOAMI 0xD100 ///< Chip ID register
+
+// ************ NOTE! The addresses below have their MSB/LSB swapped to fit with Busio
+#define SCD30_CMD_CONTINUOUS_MEASUREMENT 0x1000 ///< Command to start continuous measurement
+#define SCD30_CMD_SET_MEASUREMENT_INTERVAL 0x0046 ///< Command to set measurement intercal
+#define SCD30_CMD_GET_DATA_READY 0x0202 ///< Data ready reg
+#define SCD30_CMD_READ_MEASUREMENT 0x0003 ///< Main data register
+#define SCD30_CMD_AUTOMATIC_SELF_CALIBRATION 0x0653 ///< enables/disables auto calibration
+#define SCD30_CMD_SET_FORCED_RECALIBRATION_REF 0x0452 ///< Forces calibration with given value
+#define SCD30_CMD_SET_TEMPERATURE_OFFSET 0x0354 ///< Specifies the temp offset
+#define SCD30_CMD_SET_ALTITUDE_COMPENSATION 0x0251 ///< Specifies altitude offset
+#define SCD30_CMD_SOFT_RESET 0x04D3 ///< Soft reset!
+#define SCD30_CMD_READ_REVISION 0x00D1 ///< Firmware revision number
 
 ///////////////////////////////////////////////////////////////
 /**
@@ -58,13 +70,13 @@ private:
   Adafruit_SCD30 *_theSCD30 = NULL;
 };
 
-/** Adafruit Unified Sensor interface for the pressure sensor component of SCD30
+/** Adafruit Unified Sensor interface for the humidity sensor component of SCD30
  */
-class Adafruit_SCD30_Pressure : public Adafruit_Sensor {
+class Adafruit_SCD30_Humidity : public Adafruit_Sensor {
 public:
-  /** @brief Create an Adafruit_Sensor compatible object for the pressure sensor
+  /** @brief Create an Adafruit_Sensor compatible object for the humidity sensor
       @param parent A pointer to the SCD30 class */
-  Adafruit_SCD30_Pressure(Adafruit_SCD30 *parent) { _theSCD30 = parent; }
+  Adafruit_SCD30_Humidity(Adafruit_SCD30 *parent) { _theSCD30 = parent; }
   bool getEvent(sensors_event_t *);
   void getSensor(sensor_t *);
 
@@ -99,38 +111,46 @@ public:
   scd30_rate_t getDataRate(void);
 
   void setDataRate(scd30_rate_t data_rate);
-  bool getEvent(sensors_event_t *pressure, sensors_event_t *temp);
+  bool getEvent(sensors_event_t *humidity, sensors_event_t *temp);
 
   Adafruit_Sensor *getTemperatureSensor(void);
-  Adafruit_Sensor *getPressureSensor(void);
+  Adafruit_Sensor *getHumiditySensor(void);
 
 protected:
   void _read(void);
   virtual bool _init(int32_t sensor_id);
 
   float unscaled_temp,   ///< Last reading's temperature (C) before scaling
-      unscaled_pressure; ///< Last reading's pressure (hPa) before scaling
+      unscaled_humidity; ///< Last reading's humidity (%rH) before scaling
 
-  uint16_t _sensorid_pressure, ///< ID number for pressure
+  uint16_t _sensorid_humidity, ///< ID number for humidity
       _sensorid_temp;          ///< ID number for temperature
 
   Adafruit_I2CDevice *i2c_dev = NULL; ///< Pointer to I2C bus interface
   Adafruit_SPIDevice *spi_dev = NULL; ///< Pointer to SPI bus interface
 
   Adafruit_SCD30_Temp *temp_sensor = NULL; ///< Temp sensor data object
-  Adafruit_SCD30_Pressure *pressure_sensor =
-      NULL; ///< Pressure sensor data object
+  Adafruit_SCD30_Humidity *humidity_sensor =
+      NULL; ///< Humidity sensor data object
 
 private:
   friend class Adafruit_SCD30_Temp;     ///< Gives access to private members to
                                         ///< Temp data object
-  friend class Adafruit_SCD30_Pressure; ///< Gives access to private
-                                        ///< members to Pressure data
+  friend class Adafruit_SCD30_Humidity; ///< Gives access to private
+                                        ///< members to Humidity data
                                         ///< object
 
-  void fillPressureEvent(sensors_event_t *pressure, uint32_t timestamp);
+  void fillHumidityEvent(sensors_event_t *humidity, uint32_t timestamp);
   void fillTempEvent(sensors_event_t *temp, uint32_t timestamp);
+  bool sendCommand(uint16_t command, uint16_t argument);
+  bool sendCommand(uint16_t command);
+
+  uint16_t readRegister(uint16_t reg_address);
+  float eCO2, temperature, humidity;
+  // static uint8_t crc8(const uint8_t *data, int len);
+
 };
 
+static uint8_t crc8(const uint8_t *data, int len);
 
 #endif
