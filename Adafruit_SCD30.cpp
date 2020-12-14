@@ -67,7 +67,6 @@ Adafruit_SCD30::~Adafruit_SCD30(void) {
  */
 bool Adafruit_SCD30::begin_I2C(uint8_t i2c_address, TwoWire *wire,
                                int32_t sensor_id) {
-  spi_dev = NULL;
   if (i2c_dev) {
     delete i2c_dev; // remove old interface
   }
@@ -81,60 +80,7 @@ bool Adafruit_SCD30::begin_I2C(uint8_t i2c_address, TwoWire *wire,
 
   return _init(sensor_id);
 }
-
-/*!
- *    @brief  Sets up the hardware and initializes hardware SPI
- *    @param  cs_pin The arduino pin # connected to chip select
- *    @param  theSPI The SPI object to be used for SPI connections.
- *    @param  sensor_id
- *            The user-defined ID to differentiate different sensors
- *    @return True if initialization was successful, otherwise false.
- */
-bool Adafruit_SCD30::begin_SPI(uint8_t cs_pin, SPIClass *theSPI,
-                               int32_t sensor_id) {
-  i2c_dev = NULL;
-
-  if (spi_dev) {
-    delete spi_dev; // remove old interface
-  }
-  spi_dev = new Adafruit_SPIDevice(cs_pin,
-                                   1000000,               // frequency
-                                   SPI_BITORDER_MSBFIRST, // bit order
-                                   SPI_MODE0,             // data mode
-                                   theSPI);
-  if (!spi_dev->begin()) {
-    return false;
-  }
-
-  return _init(sensor_id);
-}
-
-/*!
- *    @brief  Sets up the hardware and initializes software SPI
- *    @param  cs_pin The arduino pin # connected to chip select
- *    @param  sck_pin The arduino pin # connected to SPI clock
- *    @param  miso_pin The arduino pin # connected to SPI MISO
- *    @param  mosi_pin The arduino pin # connected to SPI MOSI
- *    @param  sensor_id
- *            The user-defined ID to differentiate different sensors
- *    @return True if initialization was successful, otherwise false.
- */
-bool Adafruit_SCD30::begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin,
-                               int8_t mosi_pin, int32_t sensor_id) {
-  i2c_dev = NULL;
-
-  if (spi_dev) {
-    delete spi_dev; // remove old interface
-  }
-  spi_dev = new Adafruit_SPIDevice(cs_pin, sck_pin, miso_pin, mosi_pin,
-                                   1000000,               // frequency
-                                   SPI_BITORDER_MSBFIRST, // bit order
-                                   SPI_MODE0);            // data mode
-  if (!spi_dev->begin()) {
-    return false;
-  }
-  return _init(sensor_id);
-}
+// bool Adafruit_SCD30::begin_UART(void){}
 
 /*!  @brief Initializer for post i2c/spi init
  *   @param sensor_id Optional unique ID for the sensor set
@@ -143,16 +89,18 @@ bool Adafruit_SCD30::begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin,
 bool Adafruit_SCD30::_init(int32_t sensor_id) {
 
   // uint16_t chip_id = sendCommand(SCD30_CMD_)
-  Serial.print("init, so far so good"); Serial.println();
   _sensorid_humidity = sensor_id;
   _sensorid_temp = sensor_id + 1;
 
-  reset();
+  // reset();
   // do any software reset or other initial setup
 
   // // Set to highest rate
   // setDataRate(SCD30_RATE_25_HZ);
 
+  sendCommand(SCD30_CMD_CONTINUOUS_MEASUREMENT, 0);
+  sendCommand(SCD30_CMD_SET_MEASUREMENT_INTERVAL, 2);
+  sendCommand(SCD30_CMD_AUTOMATIC_SELF_CALIBRATION, 1);
   // humidity_sensor = new Adafruit_SCD30_Humidity(this);
   // temp_sensor = new Adafruit_SCD30_Temp(this);
   Serial.print("returning "); Serial.println("true");
@@ -192,6 +140,13 @@ bool Adafruit_SCD30::sendCommand(uint16_t command, uint16_t argument){
 uint16_t Adafruit_SCD30::readRegister(uint16_t reg_address){
   Adafruit_BusIO_Register _register = Adafruit_BusIO_Register(i2c_dev, reg_address, 2, MSBFIRST, 2);
   return _register.read();
+
+}
+
+bool Adafruit_SCD30::dataReady(void){
+  uint16_t ready_status = readRegister(SCD30_CMD_GET_DATA_READY);
+  Serial.print("ready value: "); Serial.println(ready_status);
+  return (ready_status== 1);
 }
 
 /******************* Adafruit_Sensor functions *****************/
@@ -199,17 +154,73 @@ uint16_t Adafruit_SCD30::readRegister(uint16_t reg_address){
  *     @brief  Updates the measurement data for all sensors simultaneously
  */
 /**************************************************************************/
-void Adafruit_SCD30::_read(void) {
+bool Adafruit_SCD30::_read(void) {
   Adafruit_BusIO_Register _data_register = Adafruit_BusIO_Register(i2c_dev, SCD30_CMD_READ_MEASUREMENT, 2, MSBFIRST, 2);
-  uint8_t buffer[18];
+  uint8_t _buffer[18];
 
-  _data_register.read(buffer, 18);
-  // setup buffers
-  // create register objs
-  // read into buffers
-  // stitch bytes together
-  // check crcs
-  // scale/convert
+  // _data_register.read(_buffer, 18);
+
+  _buffer[1] = (SCD30_CMD_READ_MEASUREMENT >>8) & 0xFF;
+  _buffer[0] = SCD30_CMD_READ_MEASUREMENT & 0xFF;
+  // This should put a stop between write and read which I believe is necessary
+  i2c_dev->write_then_read(_buffer, 2, _buffer, 18, true);
+  Serial.println("Read data:");
+  for(uint8_t i=0; i <18; i++){
+    Serial.print(i, HEX); Serial.print(" => "); Serial.println(_buffer[i], HEX);
+  }
+// [0]CO2 MMSB		0x43
+// [1]CO2 MLSB		0xDB
+// [2]CRC	      	0xCB
+// [3]CO2 LMSB		0x8C
+// [4]CO2 LLSB		0x2E
+// [5]CRC		      0x8F
+
+// [6]T MMSB		  0x41
+// [7]T MLSB	  	0xD9
+// [8]CRC		      0x70
+// [9]T LMSB	  	0xE7
+// [10]T LLSB	  	0xFF
+// [11]CRC		      0xF5
+
+// [12]RH MMSB	  	0x42
+// [13]RH MLSB	  	0x43
+// [14]CRC	      	0xBF
+// [15]RH LMSB	  	0x3A
+// [16]RH LLSB	  	0x1B
+// [17]CRC		      0x74
+
+// CO2 Concentration = 439 PPM
+// Humidity = 48.8 %
+// Temperature = 27.2 °C
+
+  uint8_t crc = 0;
+  uint8_t buffer[18] = {0x43, 0xDB, 0xCB, 0x8C, 0x2E, 0x8F, 0x41, 0xD9, 0x70, 0xE7, 0xFF, 0xF5, 0x42, 0x43, 0xBF, 0x3A, 0x1B, 0x74};
+
+  uint8_t crc_buffer[2];
+  for(uint8_t i=0; i <18; i +=3){
+
+    crc = crc8(buffer+i, 2);
+    if(crc != buffer[i+2]){
+      return false;
+    }
+  }
+  // CRCs are good, unpack floats
+  // CO2 first:
+  uint32_t co2;
+  co2 = (
+    ((uint32_t)buffer[0]<<24) |
+    ((uint32_t)buffer[1]<<16) |
+    ((uint32_t)buffer[3]<<8)  |
+    ((uint32_t)buffer[4])
+  );
+  Serial.print("uint32_t co2: 0x"); Serial.println(co2, HEX);
+  memcpy(&eCO2, &co2, sizeof(eCO2));
+
+  Serial.print("eC02: "); Serial.println(eCO2, 3);
+
+  // Serial.print("eC02: "); Serial.println(eCO2);
+  
+  return true;
 }
 
 /*!
@@ -366,6 +377,7 @@ static uint8_t crc8(const uint8_t *data, int len) {
   uint8_t crc(0xFF);
 
   for (int j = len; j; --j) {
+    Serial.print("idx: ");Serial.print(j); Serial.print(" => ");Serial.println((uint8_t)data[0], HEX);
     crc ^= *data++;
 
     for (int i = 8; i; --i) {

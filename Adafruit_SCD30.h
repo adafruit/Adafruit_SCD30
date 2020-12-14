@@ -55,7 +55,6 @@ typedef enum {
 class Adafruit_SCD30;
 
 
-
 /** Adafruit Unified Sensor interface for temperature component of SCD30 */
 class Adafruit_SCD30_Temp : public Adafruit_Sensor {
 public:
@@ -99,25 +98,15 @@ public:
   bool begin_I2C(uint8_t i2c_addr = SCD30_I2CADDR_DEFAULT,
                  TwoWire *wire = &Wire, int32_t sensor_id = 0);
 
-  bool begin_SPI(uint8_t cs_pin, SPIClass *theSPI = &SPI,
-                 int32_t sensor_id = 0);
-  bool begin_SPI(int8_t cs_pin, int8_t sck_pin, int8_t miso_pin,
-                 int8_t mosi_pin, int32_t sensor_id = 0);
-  
   void reset(void);
-  void interruptsActiveLow(bool active_low);
-
-  
-  scd30_rate_t getDataRate(void);
-
-  void setDataRate(scd30_rate_t data_rate);
+  bool dataReady(void);
   bool getEvent(sensors_event_t *humidity, sensors_event_t *temp);
 
   Adafruit_Sensor *getTemperatureSensor(void);
   Adafruit_Sensor *getHumiditySensor(void);
 
 protected:
-  void _read(void);
+  bool _read(void);
   virtual bool _init(int32_t sensor_id);
 
   float unscaled_temp,   ///< Last reading's temperature (C) before scaling
@@ -127,7 +116,6 @@ protected:
       _sensorid_temp;          ///< ID number for temperature
 
   Adafruit_I2CDevice *i2c_dev = NULL; ///< Pointer to I2C bus interface
-  Adafruit_SPIDevice *spi_dev = NULL; ///< Pointer to SPI bus interface
 
   Adafruit_SCD30_Temp *temp_sensor = NULL; ///< Temp sensor data object
   Adafruit_SCD30_Humidity *humidity_sensor =
@@ -144,7 +132,7 @@ private:
   void fillTempEvent(sensors_event_t *temp, uint32_t timestamp);
   bool sendCommand(uint16_t command, uint16_t argument);
   bool sendCommand(uint16_t command);
-
+  uint8_t computeCRC8(uint8_t data[], uint8_t len);
   uint16_t readRegister(uint16_t reg_address);
   float eCO2, temperature, humidity;
   // static uint8_t crc8(const uint8_t *data, int len);
