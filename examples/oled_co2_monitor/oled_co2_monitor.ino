@@ -58,13 +58,13 @@ void loop() {
     scd30.getEvent(&humidity, &temp);// get humidity
     Serial.print("Temperature: ");Serial.print(temp.temperature);Serial.println(" degrees C");
     Serial.print("Relative Humidity: ");Serial.print(humidity.relative_humidity);Serial.println(" %");
+    Serial.print("eCO2: ");Serial.print(scd30.eCO2, 3);Serial.println(" ppm");
     Serial.println("");
 
     display.print("Temp: ");display.print(temp.temperature);display.println(" C");
     display.print("Rel Hum: ");display.print(humidity.relative_humidity);display.println(" %rH");
+    display.print("eCO2: "); display.print(scd30.eCO2, 3); display.println(" ppm");
     display.display();
-  } else {
-    Serial.println("No data");
   }
 
   delay(100);
