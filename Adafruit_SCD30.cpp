@@ -114,9 +114,6 @@ void Adafruit_SCD30::reset(void) {
   sendCommand(SCD30_CMD_SOFT_RESET);
   delay(30);
 }
-// nit, so far so good
-// I2CWRITE @ 0x61 :: 0x4, 0xD3, 0x0, 0x0, 0x81,
-// #define SCD30_CMD_SOFT_RESET 0xD304 ///< Soft reset!
 
 bool Adafruit_SCD30::sendCommand(uint16_t command) {
   Adafruit_BusIO_Register _command =
@@ -161,7 +158,7 @@ bool Adafruit_SCD30::dataReady(void) {
  *
  * @return true: success false: failure
  */
-bool Adafruit_SCD30::_read(void) {
+bool Adafruit_SCD30::read(void) {
 
   uint8_t buffer[18];
   uint8_t crc = 0;
@@ -242,7 +239,7 @@ Adafruit_Sensor *Adafruit_SCD30::getTemperatureSensor(void) {
 bool Adafruit_SCD30::getEvent(sensors_event_t *humidity,
                               sensors_event_t *temp) {
   uint32_t t = millis();
-  _read();
+  read();
 
   // use helpers to fill in the events
   fillHumidityEvent(humidity, t);
@@ -299,7 +296,7 @@ void Adafruit_SCD30_Humidity::getSensor(sensor_t *sensor) {
 */
 /**************************************************************************/
 bool Adafruit_SCD30_Humidity::getEvent(sensors_event_t *event) {
-  _theSCD30->_read();
+  _theSCD30->read();
   _theSCD30->fillHumidityEvent(event, millis());
 
   return true;
@@ -335,7 +332,7 @@ void Adafruit_SCD30_Temp::getSensor(sensor_t *sensor) {
 */
 /**************************************************************************/
 bool Adafruit_SCD30_Temp::getEvent(sensors_event_t *event) {
-  _theSCD30->_read();
+  _theSCD30->read();
   _theSCD30->fillTempEvent(event, millis());
 
   return true;

@@ -105,16 +105,16 @@ public:
   bool dataReady(void);
   bool getEvent(sensors_event_t *humidity, sensors_event_t *temp);
 
+  bool read(void);
   Adafruit_Sensor *getTemperatureSensor(void);
   Adafruit_Sensor *getHumiditySensor(void);
-  float eCO2; ///< The most recent eCO2 reading
+  float eCO2,            ///< The most recent eCO2 reading
+      temperature,       ///< The most recent temperature reading
+      relative_humidity; ///< The most recent relative_humidity reading
+  ;
 
 protected:
-  bool _read(void);
   virtual bool _init(int32_t sensor_id);
-
-  float unscaled_temp,   ///< Last reading's temperature (C) before scaling
-      unscaled_humidity; ///< Last reading's humidity (%rH) before scaling
 
   uint16_t _sensorid_humidity, ///< ID number for humidity
       _sensorid_temp;          ///< ID number for temperature
@@ -136,9 +136,10 @@ private:
   void fillTempEvent(sensors_event_t *temp, uint32_t timestamp);
   bool sendCommand(uint16_t command, uint16_t argument);
   bool sendCommand(uint16_t command);
+  uint16_t getAmbiendPressure(void);
+  bool setAmbientPressure(uint16_t pressure);
   uint8_t computeCRC8(uint8_t data[], uint8_t len);
   uint16_t readRegister(uint16_t reg_address);
-  float temperature, relative_humidity;
   // static uint8_t crc8(const uint8_t *data, int len);
 };
 

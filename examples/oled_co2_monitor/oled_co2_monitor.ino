@@ -61,8 +61,8 @@ void loop() {
     Serial.print("eCO2: ");Serial.print(scd30.eCO2, 3);Serial.println(" ppm");
     Serial.println("");
 
-    display.print("Temp: ");display.print(temp.temperature);display.println(" C");
-    display.print("Rel Hum: ");display.print(humidity.relative_humidity);display.println(" %rH");
+    display.print("Temp: ");display.print(scd30.temperature);display.println(" C");
+    display.print("Rel Hum: ");display.print(scd30.relative_humidity);display.println(" %rH");
     display.print("eCO2: "); display.print(scd30.eCO2, 3); display.println(" ppm");
     display.display();
   }

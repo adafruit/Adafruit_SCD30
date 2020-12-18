@@ -21,11 +21,12 @@ void setup(void) {
 }
 void loop() {
   if(scd30.dataReady()){
-    Serial.println("Data available!");
-    scd30.read();
-    Serial.print("Temperature: ");Serial.print(scd30.temperature);Serial.println(" degrees C");
-    Serial.print("Relative Humidity: ");Serial.print(scd30.relative_humidity);Serial.println(" %");
-    Serial.print("eCO2: ");Serial.print(scd30.eCO2, 3);Serial.println(" ppm");
+    Serial.println("Data available!")
+    sensors_event_t temp;
+    sensors_event_t humidity;
+    scd30.getEvent(&humidity, &temp);// get humidity
+    Serial.print("Temperature: ");Serial.print(temp.temperature);Serial.println(" degrees C");
+    Serial.print("Relative Humidity: ");Serial.print(humidity.relative_humidity);Serial.println(" %");
     Serial.println("");
   } else {
     Serial.println("No data");
