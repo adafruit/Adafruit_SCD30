@@ -21,7 +21,7 @@ void setup(void) {
 }
 void loop() {
   if(scd30.dataReady()){
-    Serial.println("Data available!")
+    Serial.println("Data available!");
     sensors_event_t temp;
     sensors_event_t humidity;
     scd30.getEvent(&humidity, &temp);// get humidity

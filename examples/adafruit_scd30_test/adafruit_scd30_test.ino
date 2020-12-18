@@ -18,6 +18,14 @@ void setup(void) {
   }
   Serial.println("SCD30 Found!");
 
+
+  // if (!scd30.setMeasurementInterval(10)){
+  //   Serial.println("Failed to set measurement interval");
+  //   while(1){ delay(10);}
+  // }
+  Serial.print("Measurement Interval: "); Serial.print(scd30.getMeasurementInterval()); Serial.println(" seconds");
+
+
 }
 void loop() {
   if(scd30.dataReady()){
@@ -33,3 +41,5 @@ void loop() {
 
     delay(100);
 }
+
+

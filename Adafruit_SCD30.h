@@ -28,24 +28,21 @@
 
 #define SCD30_CMD_READ_MEASUREMENT 0x0300 ///< Main data register
 
-// ************ NOTE! The addresses below have their MSB/LSB swapped to fit with
-// Busio
 #define SCD30_CMD_CONTINUOUS_MEASUREMENT                                       \
-  0x1000 ///< Command to start continuous measurement
-#define SCD30_CMD_STOP_MEASUREMENTS                                            \
-  0x0401 ///< Command to stop measurements (0x0104)
+  0x0010 ///< Command to start continuous measurement
+#define SCD30_CMD_STOP_MEASUREMENTS 0x0104 ///< Command to stop measurements
 #define SCD30_CMD_SET_MEASUREMENT_INTERVAL                                     \
-  0x0046                                ///< Command to set measurement intercal
+  0x4600                                ///< Command to set measurement interval
 #define SCD30_CMD_GET_DATA_READY 0x0202 ///< Data ready reg
 #define SCD30_CMD_AUTOMATIC_SELF_CALIBRATION                                   \
-  0x0653 ///< enables/disables auto calibration
+  0x5306 ///< enables/disables auto calibration
 #define SCD30_CMD_SET_FORCED_RECALIBRATION_REF                                 \
-  0x0452 ///< Forces calibration with given value
-#define SCD30_CMD_SET_TEMPERATURE_OFFSET 0x0354 ///< Specifies the temp offset
+  0x5204 ///< Forces calibration with given value
+#define SCD30_CMD_SET_TEMPERATURE_OFFSET 0x5403 ///< Specifies the temp offset
 #define SCD30_CMD_SET_ALTITUDE_COMPENSATION                                    \
-  0x0251                               ///< Specifies altitude offset
-#define SCD30_CMD_SOFT_RESET 0x04D3    ///< Soft reset!
-#define SCD30_CMD_READ_REVISION 0x00D1 ///< Firmware revision number
+  0x5102                               ///< Specifies altitude offset
+#define SCD30_CMD_SOFT_RESET 0xD304    ///< Soft reset!
+#define SCD30_CMD_READ_REVISION 0xD100 ///< Firmware revision number
 ///////////////////////////////////////////////////////////////
 /**
  * @brief

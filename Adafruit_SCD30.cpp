@@ -117,24 +117,21 @@ void Adafruit_SCD30::reset(void) {
 }
 
 bool Adafruit_SCD30::sendCommand(uint16_t command) {
-  Adafruit_BusIO_Register _command =
-      Adafruit_BusIO_Register(i2c_dev, command, 2, MSBFIRST, 2);
-  uint8_t buffer[3];
+  uint8_t buffer[2];
+  buffer[0] = (command >> 8) & 0xFF;
+  buffer[1] = command & 0xFF;
 
-  return _command.write(
-      buffer,
-      0); // may not work? should send command/reg, then buffer as one txn
+  return i2c_dev->write(buffer, sizeof(buffer));
 }
 bool Adafruit_SCD30::sendCommand(uint16_t command, uint16_t argument) {
-  Adafruit_BusIO_Register _command =
-      Adafruit_BusIO_Register(i2c_dev, command, 2, MSBFIRST, 2);
-  uint8_t buffer[3];
-  buffer[0] = argument >> 8;
-  buffer[1] = argument & 0xFF;
-  buffer[2] = crc8(buffer, 2);
-  return _command.write(
-      buffer,
-      3); // may not work? should send command/reg, then buffer as one txn
+
+  uint8_t buffer[5];
+  buffer[0] = (command >> 8) & 0xFF;
+  buffer[1] = command & 0xFF;
+  buffer[2] = argument >> 8;
+  buffer[3] = argument & 0xFF;
+  buffer[4] = crc8(buffer + 2, 2);
+  return i2c_dev->write(buffer, sizeof(buffer));
 }
 uint16_t Adafruit_SCD30::readRegister(uint16_t reg_address) {
   uint8_t buffer[2];

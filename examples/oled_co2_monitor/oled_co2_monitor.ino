@@ -37,10 +37,16 @@ void setup(void) {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
+
+  if (!scd30.setMeasurementInterval(2)){
+    Serial.println("Failed to set measurement interval");
+    while(1){ delay(10);}
+  }
+  Serial.print("Measurement Interval: "); Serial.print(scd30.getMeasurementInterval()); Serial.println(" seconds");
   display.display();
   delay(500); // Pause for half second
 
-  display.setTextSize(1);
+  display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setRotation(0);
 
@@ -49,21 +55,22 @@ void loop() {
 
   if(scd30.dataReady()){
     Serial.println("Data available!");
-    sensors_event_t temp;
-    sensors_event_t humidity;
+    scd30.read(); 
 
     display.clearDisplay();
     display.setCursor(0,0);
 
-    scd30.getEvent(&humidity, &temp);// get humidity
-    Serial.print("Temperature: ");Serial.print(temp.temperature);Serial.println(" degrees C");
-    Serial.print("Relative Humidity: ");Serial.print(humidity.relative_humidity);Serial.println(" %");
+
+    display.setTextSize(2);
     Serial.print("eCO2: ");Serial.print(scd30.eCO2, 3);Serial.println(" ppm");
     Serial.println("");
 
-    display.print("Temp: ");display.print(scd30.temperature);display.println(" C");
-    display.print("Rel Hum: ");display.print(scd30.relative_humidity);display.println(" %rH");
-    display.print("eCO2: "); display.print(scd30.eCO2, 3); display.println(" ppm");
+    display.println("eCO2:"); display.print(scd30.eCO2, 2);
+
+    display.setTextSize(1);
+
+    display.setCursor(100, 20);
+    display.println(" ppm");
     display.display();
   }
 
