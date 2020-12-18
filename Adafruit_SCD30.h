@@ -106,6 +106,10 @@ public:
   bool getEvent(sensors_event_t *humidity, sensors_event_t *temp);
 
   bool read(void);
+
+  uint16_t getMeasurementInterval(void);
+  bool setMeasurementInterval(uint16_t interval);
+
   Adafruit_Sensor *getTemperatureSensor(void);
   Adafruit_Sensor *getHumiditySensor(void);
   float eCO2,            ///< The most recent eCO2 reading

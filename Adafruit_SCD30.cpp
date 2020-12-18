@@ -153,6 +153,26 @@ uint16_t Adafruit_SCD30::readRegister(uint16_t reg_address) {
 bool Adafruit_SCD30::dataReady(void) {
   return (readRegister(SCD30_CMD_GET_DATA_READY) == 1);
 }
+
+/**
+ * @brief Set the amount of time between measurements
+ *
+ * @param interval The time between measurements in seconds
+ * @return true: success false: failure
+ */
+bool Adafruit_SCD30::setMeasurementInterval(uint16_t interval) {
+  if ((interval < 2) || (interval > 1800)) {
+    return false;
+  }
+  return sendCommand(SCD30_CMD_SET_MEASUREMENT_INTERVAL, interval);
+}
+
+/**
+ * @brief Read the current amount of time between measurements
+ *
+ * @return uint16_t The current measurement interval in seconds.
+ */
+uint16_t Adafruit_SCD30::getMeasurementInterval(void) {}
 /**
  * @brief  Updates the measurement data for all sensors simultaneously
  *
