@@ -32,6 +32,8 @@
 // Busio
 #define SCD30_CMD_CONTINUOUS_MEASUREMENT                                       \
   0x1000 ///< Command to start continuous measurement
+#define SCD30_CMD_STOP_MEASUREMENTS                                            \
+  0x0401 ///< Command to stop measurements (0x0104)
 #define SCD30_CMD_SET_MEASUREMENT_INTERVAL                                     \
   0x0046                                ///< Command to set measurement intercal
 #define SCD30_CMD_GET_DATA_READY 0x0202 ///< Data ready reg
@@ -110,6 +112,21 @@ public:
   uint16_t getMeasurementInterval(void);
   bool setMeasurementInterval(uint16_t interval);
 
+  bool selfCalibrationEnabled(void);
+  bool selfCalibrationEnabled(bool);
+
+  bool startContinuousMeasurement(uint16_t pressure = 0);
+  uint16_t getAmbientPressure(void);
+
+  bool setAltitude(uint16_t altitude);
+  uint16_t getAltitude(void);
+
+  bool setTemperatureOffset(uint16_t temp_offset);
+  uint16_t getTemperatureOffset(void);
+
+  bool setForcedCalibrationReference(uint16_t reference);
+  uint16_t getForcedCalibrationReference(void);
+
   Adafruit_Sensor *getTemperatureSensor(void);
   Adafruit_Sensor *getHumiditySensor(void);
   float eCO2,            ///< The most recent eCO2 reading
@@ -141,7 +158,6 @@ private:
   bool sendCommand(uint16_t command, uint16_t argument);
   bool sendCommand(uint16_t command);
   uint16_t getAmbiendPressure(void);
-  bool setAmbientPressure(uint16_t pressure);
   uint8_t computeCRC8(uint8_t data[], uint8_t len);
   uint16_t readRegister(uint16_t reg_address);
   // static uint8_t crc8(const uint8_t *data, int len);

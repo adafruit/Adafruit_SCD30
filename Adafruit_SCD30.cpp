@@ -87,21 +87,22 @@ bool Adafruit_SCD30::begin_I2C(uint8_t i2c_address, TwoWire *wire,
  */
 bool Adafruit_SCD30::_init(int32_t sensor_id) {
 
-  // uint16_t chip_id = sendCommand(SCD30_CMD_)
   _sensorid_humidity = sensor_id;
   _sensorid_temp = sensor_id + 1;
 
-  // reset();
-  // do any software reset or other initial setup
+  reset();
 
-  // // Set to highest rate
-  // setDataRate(SCD30_RATE_25_HZ);
-
-  sendCommand(SCD30_CMD_CONTINUOUS_MEASUREMENT, 0);
-  sendCommand(SCD30_CMD_SET_MEASUREMENT_INTERVAL, 2);
-  sendCommand(SCD30_CMD_AUTOMATIC_SELF_CALIBRATION, 1);
-  // humidity_sensor = new Adafruit_SCD30_Humidity(this);
-  // temp_sensor = new Adafruit_SCD30_Temp(this);
+  if (!startContinuousMeasurement()) {
+    return false;
+  }
+  if (!setMeasurementInterval(2)) {
+    return false;
+  }
+  if (!selfCalibrationEnabled(true)) {
+    return false;
+  }
+  humidity_sensor = new Adafruit_SCD30_Humidity(this);
+  temp_sensor = new Adafruit_SCD30_Temp(this);
   return true;
 }
 
@@ -131,7 +132,7 @@ bool Adafruit_SCD30::sendCommand(uint16_t command, uint16_t argument) {
   buffer[0] = argument >> 8;
   buffer[1] = argument & 0xFF;
   buffer[2] = crc8(buffer, 2);
-  _command.write(
+  return _command.write(
       buffer,
       3); // may not work? should send command/reg, then buffer as one txn
 }
@@ -172,7 +173,110 @@ bool Adafruit_SCD30::setMeasurementInterval(uint16_t interval) {
  *
  * @return uint16_t The current measurement interval in seconds.
  */
-uint16_t Adafruit_SCD30::getMeasurementInterval(void) {}
+uint16_t Adafruit_SCD30::getMeasurementInterval(void) {
+  return readRegister(SCD30_CMD_SET_MEASUREMENT_INTERVAL);
+}
+
+/**
+ * @brief Gets the enable status of the SCD30's self calibration routine
+ *
+ * @return true: enabled false: disabled
+ */
+bool Adafruit_SCD30::selfCalibrationEnabled(void) {
+  return readRegister(SCD30_CMD_AUTOMATIC_SELF_CALIBRATION);
+}
+
+/**
+ * @brief Enable or disable the SCD30's self calibration routine
+ *
+ * @param enabled true: enable false: disable
+ * @return true: success false: failure
+ */
+bool Adafruit_SCD30::selfCalibrationEnabled(bool enabled) {
+  return sendCommand(SCD30_CMD_AUTOMATIC_SELF_CALIBRATION, enabled);
+}
+
+/**
+ * @brief Tell the SCD30 to start taking measurements continuously
+ *
+ * @param pressure an optional pressure offset to correct for in mBar
+ * @return true: succes false: failure
+ */
+bool Adafruit_SCD30::startContinuousMeasurement(uint16_t pressure) {
+  return sendCommand(SCD30_CMD_CONTINUOUS_MEASUREMENT, pressure);
+}
+
+/**
+ * @brief Read the current ambient pressure offset
+ *
+ * @return uint16_t  current ambient pressure offset in mBar
+ */
+uint16_t Adafruit_SCD30::getAmbientPressure(void) {
+  return readRegister(SCD30_CMD_CONTINUOUS_MEASUREMENT);
+}
+
+/**
+ * @brief Set the altitude offset that the SCD30 should correct for
+ *
+ * @param altitude The new altitude offset to set
+ * @return true: success false: failure
+ */
+bool Adafruit_SCD30::setAltitude(uint16_t altitude) {
+  return sendCommand(SCD30_CMD_SET_ALTITUDE_COMPENSATION, altitude);
+}
+/**
+ * @brief Get the current altitude offset
+ *
+ * @return uint16_t The current altitude offset value
+ */
+uint16_t Adafruit_SCD30::getAltitude(void) {
+  return readRegister(SCD30_CMD_SET_ALTITUDE_COMPENSATION);
+}
+
+/**
+ * @brief Set a temperature offset
+ *
+ * @param temp_offset The **positive** temperature offset to set in hundreths of
+ * a degree C ie:
+ *
+ * 1015 => 10.15 degrees C
+ * 31337 => 313.37 degrees C
+ * @return true: success false: failure
+ */
+bool Adafruit_SCD30::setTemperatureOffset(uint16_t temp_offset) {
+  return sendCommand(SCD30_CMD_SET_TEMPERATURE_OFFSET, temp_offset);
+}
+/**
+ * @brief Get the current temperature offset in hundreths of a degree C
+ *
+ * @return uint16_t the current temperature offset
+ */
+uint16_t Adafruit_SCD30::getTemperatureOffset(void) {
+  return readRegister(SCD30_CMD_SET_TEMPERATURE_OFFSET);
+}
+
+/**
+ * @brief Force the SCD30 to recalibrate with a given reference value
+ *
+ * @param reference The calibration reference value in ppm. Must be from
+ * 400-2000 ppm
+ * @return true: success false: failure
+ */
+bool Adafruit_SCD30::setForcedCalibrationReference(uint16_t reference) {
+  if ((reference < 400) || (reference > 2000)) {
+    return false;
+  }
+  return sendCommand(SCD30_CMD_SET_FORCED_RECALIBRATION_REF, reference);
+}
+
+/**
+ * @brief Get the current forced recalibration reference value
+ *
+ * @return uint16_t The current reference value in ppm
+ */
+uint16_t Adafruit_SCD30::getForcedCalibrationReference(void) {
+  return readRegister(SCD30_CMD_SET_FORCED_RECALIBRATION_REF);
+}
 /**
  * @brief  Updates the measurement data for all sensors simultaneously
  *
