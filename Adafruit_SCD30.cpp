@@ -65,8 +65,8 @@ Adafruit_SCD30::~Adafruit_SCD30(void) {
  *            The unique ID to differentiate the sensors from others
  *    @return True if initialization was successful, otherwise false.
  */
-bool Adafruit_SCD30::begin_I2C(uint8_t i2c_address, TwoWire *wire,
-                               int32_t sensor_id) {
+bool Adafruit_SCD30::begin(uint8_t i2c_address, TwoWire *wire,
+                           int32_t sensor_id) {
   if (i2c_dev) {
     delete i2c_dev; // remove old interface
   }
@@ -81,7 +81,7 @@ bool Adafruit_SCD30::begin_I2C(uint8_t i2c_address, TwoWire *wire,
 }
 // bool Adafruit_SCD30::begin_UART(void){}
 
-/*!  @brief Initializer for post i2c/spi init
+/*!  @brief Initializer for post i2c init
  *   @param sensor_id Optional unique ID for the sensor set
  *   @returns True if chip identified and initialized
  */
@@ -108,7 +108,7 @@ bool Adafruit_SCD30::_init(int32_t sensor_id) {
 
 /**
  * @brief Performs a software reset initializing registers to their power on
- * state
+ * state.
  *
  */
 void Adafruit_SCD30::reset(void) {
@@ -116,37 +116,10 @@ void Adafruit_SCD30::reset(void) {
   delay(30);
 }
 
-bool Adafruit_SCD30::sendCommand(uint16_t command) {
-  uint8_t buffer[2];
-  buffer[0] = (command >> 8) & 0xFF;
-  buffer[1] = command & 0xFF;
-
-  return i2c_dev->write(buffer, sizeof(buffer));
-}
-bool Adafruit_SCD30::sendCommand(uint16_t command, uint16_t argument) {
-
-  uint8_t buffer[5];
-  buffer[0] = (command >> 8) & 0xFF;
-  buffer[1] = command & 0xFF;
-  buffer[2] = argument >> 8;
-  buffer[3] = argument & 0xFF;
-  buffer[4] = crc8(buffer + 2, 2);
-  return i2c_dev->write(buffer, sizeof(buffer));
-}
-uint16_t Adafruit_SCD30::readRegister(uint16_t reg_address) {
-  uint8_t buffer[2];
-  buffer[0] = (reg_address >> 8) & 0xFF;
-  buffer[1] = reg_address & 0xFF;
-  // the SCD30 really wants a stop before the read!
-  i2c_dev->write_then_read(buffer, 2, buffer, 2, true);
-  return (uint16_t)(buffer[0] << 8 | (buffer[1] & 0xFF));
-}
-
 /**
  * @brief Ask the sensor if new data is ready to read
  *
- * @return true: data is available
- * @return false no new data available
+ * @return true: data is available false: no new data available
  */
 bool Adafruit_SCD30::dataReady(void) {
   return (readRegister(SCD30_CMD_GET_DATA_READY) == 1);
@@ -155,7 +128,9 @@ bool Adafruit_SCD30::dataReady(void) {
 /**
  * @brief Set the amount of time between measurements
  *
- * @param interval The time between measurements in seconds
+ * @param interval The time between measurements in seconds. Must be from 2-1800
+ * seconds. The default value set on sensor initialization is 2 seconds.
+ *
  * @return true: success false: failure
  */
 bool Adafruit_SCD30::setMeasurementInterval(uint16_t interval) {
@@ -180,7 +155,7 @@ uint16_t Adafruit_SCD30::getMeasurementInterval(void) {
  * @return true: enabled false: disabled
  */
 bool Adafruit_SCD30::selfCalibrationEnabled(void) {
-  return readRegister(SCD30_CMD_AUTOMATIC_SELF_CALIBRATION);
+  return (readRegister(SCD30_CMD_AUTOMATIC_SELF_CALIBRATION) == 1);
 }
 
 /**
@@ -196,7 +171,7 @@ bool Adafruit_SCD30::selfCalibrationEnabled(bool enabled) {
 /**
  * @brief Tell the SCD30 to start taking measurements continuously
  *
- * @param pressure an optional pressure offset to correct for in mBar
+ * @param pressure an optional pressure offset to correct for in millibar (mBar)
  * @return true: succes false: failure
  */
 bool Adafruit_SCD30::startContinuousMeasurement(uint16_t pressure) {
@@ -206,27 +181,29 @@ bool Adafruit_SCD30::startContinuousMeasurement(uint16_t pressure) {
 /**
  * @brief Read the current ambient pressure offset
  *
- * @return uint16_t  current ambient pressure offset in mBar
+ * @return uint16_t  current ambient pressure offset in millibar (mBar)
  */
-uint16_t Adafruit_SCD30::getAmbientPressure(void) {
+uint16_t Adafruit_SCD30::getAmbientPressureOffset(void) {
   return readRegister(SCD30_CMD_CONTINUOUS_MEASUREMENT);
 }
 
 /**
  * @brief Set the altitude offset that the SCD30 should correct for
  *
- * @param altitude The new altitude offset to set
+ * **Note:** This value is saved to the SCD30's internal storage and is reloaded
+ * on sensor power up.
+ * @param altitude The altitude offset in meters above sea level.
  * @return true: success false: failure
  */
-bool Adafruit_SCD30::setAltitude(uint16_t altitude) {
+bool Adafruit_SCD30::setAltitudeOffset(uint16_t altitude) {
   return sendCommand(SCD30_CMD_SET_ALTITUDE_COMPENSATION, altitude);
 }
 /**
  * @brief Get the current altitude offset
  *
- * @return uint16_t The current altitude offset value
+ * @return uint16_t The current altitude offset value in meters above sea level.
  */
-uint16_t Adafruit_SCD30::getAltitude(void) {
+uint16_t Adafruit_SCD30::getAltitudeOffset(void) {
   return readRegister(SCD30_CMD_SET_ALTITUDE_COMPENSATION);
 }
 
@@ -238,6 +215,10 @@ uint16_t Adafruit_SCD30::getAltitude(void) {
  *
  * 1015 => 10.15 degrees C
  * 31337 => 313.37 degrees C
+ *
+ *
+ * **Note:** This value is saved to the SCD30's internal storage and is reloaded
+ * on sensor power up.
  * @return true: success false: failure
  */
 bool Adafruit_SCD30::setTemperatureOffset(uint16_t temp_offset) {
@@ -255,11 +236,17 @@ uint16_t Adafruit_SCD30::getTemperatureOffset(void) {
 /**
  * @brief Force the SCD30 to recalibrate with a given reference value
  *
- * @param reference The calibration reference value in ppm. Must be from
- * 400-2000 ppm
+ * @param reference The calibration reference value in ppm from
+ * 400-2000 ppm.
+ *
+ * **Note:** This value is saved to the SCD30's internal storage and is reloaded
+ * on sensor power up.
+ *
+ * **Setting a reference value and forcing recalibration will override any
+ * previous automatic self-calibration.**
  * @return true: success false: failure
  */
-bool Adafruit_SCD30::setForcedCalibrationReference(uint16_t reference) {
+bool Adafruit_SCD30::forceRecalibrationWithReference(uint16_t reference) {
   if ((reference < 400) || (reference > 2000)) {
     return false;
   }
@@ -329,6 +316,32 @@ bool Adafruit_SCD30::read(void) {
   memcpy(&relative_humidity, &hum, sizeof(relative_humidity));
 
   return true;
+}
+
+bool Adafruit_SCD30::sendCommand(uint16_t command) {
+  uint8_t buffer[2];
+  buffer[0] = (command >> 8) & 0xFF;
+  buffer[1] = command & 0xFF;
+
+  return i2c_dev->write(buffer, sizeof(buffer));
+}
+bool Adafruit_SCD30::sendCommand(uint16_t command, uint16_t argument) {
+
+  uint8_t buffer[5];
+  buffer[0] = (command >> 8) & 0xFF;
+  buffer[1] = command & 0xFF;
+  buffer[2] = argument >> 8;
+  buffer[3] = argument & 0xFF;
+  buffer[4] = crc8(buffer + 2, 2);
+  return i2c_dev->write(buffer, sizeof(buffer));
+}
+uint16_t Adafruit_SCD30::readRegister(uint16_t reg_address) {
+  uint8_t buffer[2];
+  buffer[0] = (reg_address >> 8) & 0xFF;
+  buffer[1] = reg_address & 0xFF;
+  // the SCD30 really wants a stop before the read!
+  i2c_dev->write_then_read(buffer, 2, buffer, 2, true);
+  return (uint16_t)(buffer[0] << 8 | (buffer[1] & 0xFF));
 }
 
 /*!

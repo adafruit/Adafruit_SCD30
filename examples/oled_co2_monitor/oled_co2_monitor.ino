@@ -23,7 +23,7 @@ void setup(void) {
   Serial.println("Adafruit SCD30 test!");
 
   // Try to initialize!
-  if (!scd30.begin_I2C()) {
+  if (!scd30.begin()) {
   //if (!scd30.begin_SPI(SCD30_CS)) {
   //if (!scd30.begin_SPI(SCD30_CS, SCD30_SCK, SCD30_MISO, SCD30_MOSI)) {
     Serial.println("Failed to find SCD30 chip");

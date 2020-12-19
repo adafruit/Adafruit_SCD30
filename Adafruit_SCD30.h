@@ -97,8 +97,8 @@ public:
   Adafruit_SCD30();
   ~Adafruit_SCD30();
 
-  bool begin_I2C(uint8_t i2c_addr = SCD30_I2CADDR_DEFAULT,
-                 TwoWire *wire = &Wire, int32_t sensor_id = 0);
+  bool begin(uint8_t i2c_addr = SCD30_I2CADDR_DEFAULT, TwoWire *wire = &Wire,
+             int32_t sensor_id = 0);
 
   void reset(void);
   bool dataReady(void);
@@ -113,15 +113,15 @@ public:
   bool selfCalibrationEnabled(bool);
 
   bool startContinuousMeasurement(uint16_t pressure = 0);
-  uint16_t getAmbientPressure(void);
+  uint16_t getAmbientPressureOffset(void);
 
-  bool setAltitude(uint16_t altitude);
-  uint16_t getAltitude(void);
+  bool setAltitudeOffset(uint16_t altitude);
+  uint16_t getAltitudeOffset(void);
 
   bool setTemperatureOffset(uint16_t temp_offset);
   uint16_t getTemperatureOffset(void);
 
-  bool setForcedCalibrationReference(uint16_t reference);
+  bool forceRecalibrationWithReference(uint16_t reference);
   uint16_t getForcedCalibrationReference(void);
 
   Adafruit_Sensor *getTemperatureSensor(void);
