@@ -1,31 +1,19 @@
-
-
-
-// Basic demo for readings from Adafruit SCD30
+// A simple eCO2 meter using the Adafruit SCD30 breakout and the Adafruit 128x32 OLEDs
 #include <Wire.h>
 #include <Adafruit_SCD30.h>
-#include <Adafruit_Sensor.h>
 #include <Adafruit_SSD1306.h>
-// For SPI mode, we need a CS pin
-#define SCD30_CS 10
-// For software-SPI mode we need SCK/MOSI/MISO pins
-#define SCD30_SCK 13
-#define SCD30_MISO 12
-#define SCD30_MOSI 11
 
 Adafruit_SCD30  scd30;
-
 Adafruit_SSD1306 display = Adafruit_SSD1306(128, 32, &Wire);
+
 void setup(void) {
   Serial.begin(115200);
   while (!Serial) delay(10);     // will pause Zero, Leonardo, etc until serial console opens
 
-  Serial.println("Adafruit SCD30 test!");
+  Serial.println("SCD30 OLED eCO2 meter!");
 
   // Try to initialize!
   if (!scd30.begin()) {
-  //if (!scd30.begin_SPI(SCD30_CS)) {
-  //if (!scd30.begin_SPI(SCD30_CS, SCD30_SCK, SCD30_MISO, SCD30_MOSI)) {
     Serial.println("Failed to find SCD30 chip");
     while (1) { delay(10); }
   }
@@ -52,16 +40,21 @@ void setup(void) {
 
 }
 void loop() {
-
   if(scd30.dataReady()){
-    Serial.println("Data available!");
-    scd30.read(); 
-
     display.clearDisplay();
     display.setCursor(0,0);
-
-
     display.setTextSize(2);
+
+    Serial.println("Data available!");
+
+    if (!scd30.read()){
+      Serial.println("Error reading sensor data");
+      display.println("READ ERR");
+      display.display();
+      return;
+    }
+
+
     Serial.print("eCO2: ");Serial.print(scd30.eCO2, 3);Serial.println(" ppm");
     Serial.println("");
 

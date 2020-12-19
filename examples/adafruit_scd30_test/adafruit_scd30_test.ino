@@ -30,7 +30,9 @@ void setup(void) {
 void loop() {
   if(scd30.dataReady()){
     Serial.println("Data available!");
-    scd30.read();
+
+    if (!scd30.read()){ Serial.println("Error reading sensor data"); return; }
+
     Serial.print("Temperature: ");Serial.print(scd30.temperature);Serial.println(" degrees C");
     Serial.print("Relative Humidity: ");Serial.print(scd30.relative_humidity);Serial.println(" %");
     Serial.print("eCO2: ");Serial.print(scd30.eCO2, 3);Serial.println(" ppm");

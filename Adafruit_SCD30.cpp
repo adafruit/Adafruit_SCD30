@@ -273,8 +273,16 @@ bool Adafruit_SCD30::read(void) {
 
   buffer[0] = (SCD30_CMD_READ_MEASUREMENT >> 8) & 0xFF;
   buffer[1] = SCD30_CMD_READ_MEASUREMENT & 0xFF;
-  // This should put a stop between write and read which I believe is necessary
-  i2c_dev->write_then_read(buffer, 2, buffer, 18, true);
+
+  if (!i2c_dev->write(buffer, 2)) {
+    return false;
+  }
+
+  delay(4); // delay between write and read specified by the datasheet
+
+  if (!i2c_dev->read(buffer, 18)) {
+    return false;
+  }
 
   uint8_t crc_buffer[2];
   // loop through the bytes we read, 3 at a time for i=MSB, i+1=LSB, i+2=CRC
@@ -373,7 +381,9 @@ Adafruit_Sensor *Adafruit_SCD30::getTemperatureSensor(void) {
 bool Adafruit_SCD30::getEvent(sensors_event_t *humidity,
                               sensors_event_t *temp) {
   uint32_t t = millis();
-  read();
+  if (!read()) {
+    return false;
+  }
 
   // use helpers to fill in the events
   fillHumidityEvent(humidity, t);

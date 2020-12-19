@@ -21,7 +21,7 @@ void setup(void) {
    * The code below will report the current settings for each of the
    * settings that can be changed. To see how they work, uncomment the setting
    * code above a status message and adjust the value
-   * 
+   *
    * **Note:** Since Automatic self calibration and forcing recalibration with
    * a reference value overwrite each other, you should only set one or the other
   ***/
@@ -101,7 +101,8 @@ void setup(void) {
 
 void loop() {
   if(scd30.dataReady()){
-    scd30.read();
+
+    if (!scd30.read()){ Serial.println("Error reading sensor data"); return; }
 
     Serial.print("Temperature: ");Serial.print(scd30.temperature);Serial.println(" degrees C");
     Serial.print("Relative Humidity: ");Serial.print(scd30.relative_humidity);Serial.println(" %");
