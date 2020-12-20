@@ -1,8 +1,8 @@
 // Demo of the available settings for the SCD30
-#include <Wire.h>
 #include <Adafruit_SCD30.h>
 
 Adafruit_SCD30  scd30;
+
 void setup(void) {
   Serial.begin(115200);
   while (!Serial) delay(10);     // will pause Zero, Leonardo, etc until serial console opens
@@ -11,7 +11,6 @@ void setup(void) {
 
   // Try to initialize!
   if (!scd30.begin()) {
-
     Serial.println("Failed to find SCD30 chip");
     while (1) { delay(10); }
   }
@@ -28,7 +27,7 @@ void setup(void) {
 
 
   /*** Adjust the rate at which measurements are taken, from 5-1800 seconds */
-  // if (!scd30.setMeasurementInterval(5)){
+  // if (!scd30.setMeasurementInterval(5)) {
   //   Serial.println("Failed to set measurement interval");
   //   while(1){ delay(10);}
   // }
@@ -75,7 +74,7 @@ void setup(void) {
    * any previous self calibration values                          ***/
   // if (!scd30.forceRecalibrationWithReference(400)){
   //   Serial.println("Failed to force recalibration with reference");
-  //   while(1){ delay(10);}
+  //   while(1) { delay(10); }
   // }
   Serial.print("Forced Recalibration reference: ");
   Serial.print(scd30.getForcedCalibrationReference());
@@ -88,9 +87,9 @@ void setup(void) {
   ***/
   // if (!scd30.selfCalibrationEnabled(true)){
   //   Serial.println("Failed to enable or disable self calibration");
-  //   while(1){ delay(10);}
+  //   while(1) { delay(10); }
   // }
-  if(scd30.selfCalibrationEnabled()){
+  if (scd30.selfCalibrationEnabled()) {
     Serial.print("Self calibration enabled");
   } else {
     Serial.print("Self calibration disabled");
@@ -100,15 +99,26 @@ void setup(void) {
 }
 
 void loop() {
-  if(scd30.dataReady()){
+  if (scd30.dataReady()) {
+    
+    if (!scd30.read()){ 
+      Serial.println("Error reading sensor data"); 
+      return; 
+    }
 
-    if (!scd30.read()){ Serial.println("Error reading sensor data"); return; }
-
-    Serial.print("Temperature: ");Serial.print(scd30.temperature);Serial.println(" degrees C");
-    Serial.print("Relative Humidity: ");Serial.print(scd30.relative_humidity);Serial.println(" %");
-    Serial.print("eCO2: ");Serial.print(scd30.eCO2, 3);Serial.println(" ppm");
+    Serial.print("Temperature: ");
+    Serial.print(scd30.temperature);
+    Serial.println(" degrees C");
+    
+    Serial.print("Relative Humidity: ");
+    Serial.print(scd30.relative_humidity);
+    Serial.println(" %");
+    
+    Serial.print("eCO2: ");
+    Serial.print(scd30.eCO2, 3);
+    Serial.println(" ppm");
     Serial.println("");
   }
 
-    delay(100);
+  delay(100);
 }
