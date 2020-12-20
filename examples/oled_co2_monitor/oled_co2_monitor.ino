@@ -1,5 +1,4 @@
 // A simple eCO2 meter using the Adafruit SCD30 breakout and the Adafruit 128x32 OLEDs
-#include <Wire.h>
 #include <Adafruit_SCD30.h>
 #include <Adafruit_SSD1306.h>
 
@@ -28,19 +27,23 @@ void setup(void) {
 
   if (!scd30.setMeasurementInterval(2)){
     Serial.println("Failed to set measurement interval");
-    while(1){ delay(10);}
+    while(1) {delay(10);}
   }
-  Serial.print("Measurement Interval: "); Serial.print(scd30.getMeasurementInterval()); Serial.println(" seconds");
+  Serial.print("Measurement Interval: "); 
+  Serial.print(scd30.getMeasurementInterval()); 
+  Serial.println(" seconds");
+  
   display.display();
   delay(500); // Pause for half second
 
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setRotation(0);
-
 }
+
+
 void loop() {
-  if(scd30.dataReady()){
+  if (scd30.dataReady()) {
     display.clearDisplay();
     display.setCursor(0,0);
     display.setTextSize(2);
@@ -54,11 +57,13 @@ void loop() {
       return;
     }
 
-
-    Serial.print("eCO2: ");Serial.print(scd30.eCO2, 3);Serial.println(" ppm");
+    Serial.print("eCO2: ");
+    Serial.print(scd30.eCO2, 3);
+    Serial.println(" ppm");
     Serial.println("");
 
-    display.println("eCO2:"); display.print(scd30.eCO2, 2);
+    display.println("eCO2:"); 
+    display.print(scd30.eCO2, 2);
 
     display.setTextSize(1);
 
@@ -68,5 +73,4 @@ void loop() {
   }
 
   delay(100);
-
 }
