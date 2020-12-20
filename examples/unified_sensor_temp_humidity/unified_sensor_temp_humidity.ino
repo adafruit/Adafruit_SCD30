@@ -1,9 +1,9 @@
-// Basic demo for readings from Adafruit SCD30
-#include <Wire.h>
+// Unified sensor demo for readings from Adafruit SCD30
 #include <Adafruit_SCD30.h>
 #include <Adafruit_Sensor.h>
 
 Adafruit_SCD30  scd30;
+
 void setup(void) {
   Serial.begin(115200);
   while (!Serial) delay(10);     // will pause Zero, Leonardo, etc until serial console opens
@@ -17,8 +17,9 @@ void setup(void) {
   }
 
   Serial.println("SCD30 Found!");
-
 }
+
+
 void loop() {
   if(scd30.dataReady()){
     Serial.println("Data available!");
@@ -30,9 +31,15 @@ void loop() {
       return;
     }
 
-    Serial.print("Temperature: ");Serial.print(temp.temperature);Serial.println(" degrees C");
-    Serial.print("Relative Humidity: ");Serial.print(humidity.relative_humidity);Serial.println(" %");
+    Serial.print("Temperature: ");
+    Serial.print(temp.temperature);
+    Serial.println(" degrees C");
+    
+    Serial.print("Relative Humidity: ");
+    Serial.print(humidity.relative_humidity);
+    Serial.println(" %");
     Serial.println("");
   }
-    delay(100);
+
+  delay(100);
 }
