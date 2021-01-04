@@ -79,7 +79,6 @@ bool Adafruit_SCD30::begin(uint8_t i2c_address, TwoWire *wire,
 
   return _init(sensor_id);
 }
-// bool Adafruit_SCD30::begin_UART(void){}
 
 /*!  @brief Initializer for post i2c init
  *   @param sensor_id Optional unique ID for the sensor set
@@ -198,6 +197,7 @@ uint16_t Adafruit_SCD30::getAmbientPressureOffset(void) {
 bool Adafruit_SCD30::setAltitudeOffset(uint16_t altitude) {
   return sendCommand(SCD30_CMD_SET_ALTITUDE_COMPENSATION, altitude);
 }
+
 /**
  * @brief Get the current altitude offset
  *
@@ -224,6 +224,7 @@ uint16_t Adafruit_SCD30::getAltitudeOffset(void) {
 bool Adafruit_SCD30::setTemperatureOffset(uint16_t temp_offset) {
   return sendCommand(SCD30_CMD_SET_TEMPERATURE_OFFSET, temp_offset);
 }
+
 /**
  * @brief Get the current temperature offset in hundreths of a degree C
  *
@@ -261,6 +262,7 @@ bool Adafruit_SCD30::forceRecalibrationWithReference(uint16_t reference) {
 uint16_t Adafruit_SCD30::getForcedCalibrationReference(void) {
   return readRegister(SCD30_CMD_SET_FORCED_RECALIBRATION_REF);
 }
+
 /**
  * @brief  Updates the measurement data for all sensors simultaneously
  *
@@ -333,6 +335,7 @@ bool Adafruit_SCD30::sendCommand(uint16_t command) {
 
   return i2c_dev->write(buffer, sizeof(buffer));
 }
+
 bool Adafruit_SCD30::sendCommand(uint16_t command, uint16_t argument) {
 
   uint8_t buffer[5];
@@ -343,6 +346,7 @@ bool Adafruit_SCD30::sendCommand(uint16_t command, uint16_t argument) {
   buffer[4] = crc8(buffer + 2, 2);
   return i2c_dev->write(buffer, sizeof(buffer));
 }
+
 uint16_t Adafruit_SCD30::readRegister(uint16_t reg_address) {
   uint8_t buffer[2];
   buffer[0] = (reg_address >> 8) & 0xFF;
