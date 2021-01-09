@@ -98,9 +98,6 @@ bool Adafruit_SCD30::_init(int32_t sensor_id) {
   if (!setMeasurementInterval(2)) {
     return false;
   }
-  if (!selfCalibrationEnabled(true)) {
-    return false;
-  }
   humidity_sensor = new Adafruit_SCD30_Humidity(this);
   temp_sensor = new Adafruit_SCD30_Temp(this);
   return true;
