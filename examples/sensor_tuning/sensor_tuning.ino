@@ -26,7 +26,7 @@ void setup(void) {
   ***/
 
 
-  /*** Adjust the rate at which measurements are taken, from 5-1800 seconds */
+  /*** Adjust the rate at which measurements are taken, from 2-1800 seconds */
   // if (!scd30.setMeasurementInterval(5)) {
   //   Serial.println("Failed to set measurement interval");
   //   while(1){ delay(10);}
@@ -49,7 +49,9 @@ void setup(void) {
 
 
   /*** Set an altitude offset in meters above sea level.
-   * Setting an altitude offset will override any pressure offset ***/
+   * Offset value stored in non-volatile memory of SCD30.
+   * Setting an altitude offset will override any pressure offset.
+   */
   // if (!scd30.setAltitudeOffset(110)){
   //   Serial.println("Failed to set measurement interval");
   //   while(1){ delay(10);}
@@ -59,7 +61,9 @@ void setup(void) {
   Serial.println(" meters");
 
 
-  /*** Set a temperature offset in hundredths of a degree celcius ***/
+  /*** Set a temperature offset in hundredths of a degree celcius.
+   * Offset value stored in non-volatile memory of SCD30.
+   */
   // if (!scd30.setTemperatureOffset(1984)){ // 19.84 degrees celcius
   //   Serial.println("Failed to set temperature offset");
   //   while(1){ delay(10);}
@@ -71,7 +75,9 @@ void setup(void) {
 
   /*** Force the sensor to recalibrate with the given reference value
    * from 400-2000 ppm. Writing a recalibration reference will overwrite
-   * any previous self calibration values                          ***/
+   * any previous self calibration values.
+   * Reference value stored in non-volatile memory of SCD30.
+   */
   // if (!scd30.forceRecalibrationWithReference(400)){
   //   Serial.println("Failed to force recalibration with reference");
   //   while(1) { delay(10); }
@@ -81,10 +87,13 @@ void setup(void) {
   Serial.println(" ppm");
 
 
-  /*** Enable or disable automatic self calibration
+  /*** Enable or disable automatic self calibration (ASC).
+   * Parameter stored in non-volatile memory of SCD30.
    * Enabling self calibration will override any previously set
-   * forced calibration value
-  ***/
+   * forced calibration value.
+   * ASC needs continuous operation with at least 1 hour
+   * 400ppm CO2 concentration daily.
+   */
   // if (!scd30.selfCalibrationEnabled(true)){
   //   Serial.println("Failed to enable or disable self calibration");
   //   while(1) { delay(10); }
