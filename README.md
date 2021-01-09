@@ -16,7 +16,7 @@ To install, use the Arduino Library Manager and search for "Adafruit SCD30" and 
 p
 # Contributing
 
-Contributions are welcome! Please read our [Code of Conduct](https://github.com/adafruit/Adafruit_SCD30/blob/master/CODE_OF_CONDUCT.md>)
+Contributions are welcome! Please read our [Code of Conduct](https://github.com/adafruit/Adafruit_SCD30/blob/master/code-of-conduct.md)
 before contributing to help this project stay welcoming.
 
 ## Documentation and doxygen
