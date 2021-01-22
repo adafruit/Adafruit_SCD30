@@ -126,7 +126,7 @@ public:
 
   Adafruit_Sensor *getTemperatureSensor(void);
   Adafruit_Sensor *getHumiditySensor(void);
-  float CO2,            ///< The most recent CO2 reading
+  float CO2,             ///< The most recent CO2 reading
       temperature,       ///< The most recent temperature reading
       relative_humidity; ///< The most recent relative_humidity reading
   ;
