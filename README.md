@@ -2,8 +2,11 @@
 
 
 This is the Adafruit SCD30 CO2, Temperature, and Humidity Sensor Library for Arduino
+
 Tested and works great with the Adafruit SCD30 Breakout Board
+
 [<img src="assets/board.png?raw=true" width="500px">](https://www.adafruit.com/products/4867)
+
 Adafruit invests time and resources providing this open source code, please support Adafruit and open-source hardware by purchasing products from Adafruit!
 
 # Installation
