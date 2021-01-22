@@ -1,11 +1,11 @@
 /*!
  *  @file Adafruit_SCD30.cpp
  *
- *  @mainpage Adafruit SCD30 eCO2, Temperature, and Humidity sensor
+ *  @mainpage Adafruit SCD30 CO2, Temperature, and Humidity sensor
  *
  *  @section intro_sec Introduction
  *
- * 	I2C Driver for the Library for the SCD30 eCO2, Temperature, and Humidity
+ * 	I2C Driver for the Library for the SCD30 CO2, Temperature, and Humidity
  * sensor
  *
  * 	This is a library for the Adafruit SCD30 breakout:
@@ -316,7 +316,7 @@ bool Adafruit_SCD30::read(void) {
   hum <<= 8;
   hum |= buffer[16];
 
-  memcpy(&eCO2, &co2, sizeof(eCO2));
+  memcpy(&CO2, &co2, sizeof(CO2));
   memcpy(&temperature, &temp, sizeof(temperature));
   memcpy(&relative_humidity, &hum, sizeof(relative_humidity));
 

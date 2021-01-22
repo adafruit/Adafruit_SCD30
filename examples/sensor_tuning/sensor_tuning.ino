@@ -123,8 +123,8 @@ void loop() {
     Serial.print(scd30.relative_humidity);
     Serial.println(" %");
     
-    Serial.print("eCO2: ");
-    Serial.print(scd30.eCO2, 3);
+    Serial.print("CO2: ");
+    Serial.print(scd30.CO2, 3);
     Serial.println(" ppm");
     Serial.println("");
   }

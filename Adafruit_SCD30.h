@@ -1,7 +1,7 @@
 /*!
  *  @file Adafruit_SCD30.h
  *
- * 	I2C Driver for the Adafruit SCD30 eCO2, Temperature, and Humidity sensor
+ * 	I2C Driver for the Adafruit SCD30 CO2, Temperature, and Humidity sensor
  * 	This is a library is written to work with the Adafruit SCD30 breakout:
  * 	https://www.adafruit.com/products/48xx
  *
@@ -90,7 +90,7 @@ private:
 
 /*!
  *    @brief  Class that stores state and functions for interacting with
- *            the SCD30 eCO2, Temperature, and Humidity sensor
+ *            the SCD30 CO2, Temperature, and Humidity sensor
  */
 class Adafruit_SCD30 {
 public:
@@ -126,7 +126,7 @@ public:
 
   Adafruit_Sensor *getTemperatureSensor(void);
   Adafruit_Sensor *getHumiditySensor(void);
-  float eCO2,            ///< The most recent eCO2 reading
+  float CO2,            ///< The most recent CO2 reading
       temperature,       ///< The most recent temperature reading
       relative_humidity; ///< The most recent relative_humidity reading
   ;
