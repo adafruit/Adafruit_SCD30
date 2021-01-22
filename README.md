@@ -1,9 +1,12 @@
 # Adafruit SCD30 [![Build Status](https://github.com/adafruit/Adafruit_SCD30/workflows/Arduino%20Library%20CI/badge.svg)](https://github.com/adafruit/Adafruit_SCD30/actions)[![Documentation](https://github.com/adafruit/ci-arduino/blob/master/assets/doxygen_badge.svg)](http://adafruit.github.io/Adafruit_SCD30/html/index.html)
 
 
-This is the Adafruit SCD30 eCO2, Temperature, and Humidity Sensor Library for Arduino
-Tested and works great with the Adafruit SCD30 Breakout Board
-[<img src="assets/board.png?raw=true" width="500px">](https://www.adafruit.com/products/48XX)
+This is the Adafruit SCD30 CO2, Temperature, and Humidity Sensor Library for Arduino
+
+Tested and works great with the [Adafruit SCD30 Breakout Board](https://www.adafruit.com/products/4867):
+
+[<img src="assets/board.png?raw=true" width="500px">](https://www.adafruit.com/products/4867)
+
 Adafruit invests time and resources providing this open source code, please support Adafruit and open-source hardware by purchasing products from Adafruit!
 
 # Installation
