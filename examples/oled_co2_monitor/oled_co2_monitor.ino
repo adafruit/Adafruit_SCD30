@@ -1,4 +1,4 @@
-// A simple eCO2 meter using the Adafruit SCD30 breakout and the Adafruit 128x32 OLEDs
+// A simple CO2 meter using the Adafruit SCD30 breakout and the Adafruit 128x32 OLEDs
 #include <Adafruit_SCD30.h>
 #include <Adafruit_SSD1306.h>
 
@@ -9,7 +9,7 @@ void setup(void) {
   Serial.begin(115200);
   while (!Serial) delay(10);     // will pause Zero, Leonardo, etc until serial console opens
 
-  Serial.println("SCD30 OLED eCO2 meter!");
+  Serial.println("SCD30 OLED CO2 meter!");
 
   // Try to initialize!
   if (!scd30.begin()) {
@@ -57,13 +57,13 @@ void loop() {
       return;
     }
 
-    Serial.print("eCO2: ");
-    Serial.print(scd30.eCO2, 3);
+    Serial.print("CO2: ");
+    Serial.print(scd30.CO2, 3);
     Serial.println(" ppm");
     Serial.println("");
 
-    display.println("eCO2:"); 
-    display.print(scd30.eCO2, 2);
+    display.println("CO2:");
+    display.print(scd30.CO2, 2);
 
     display.setTextSize(1);
 
