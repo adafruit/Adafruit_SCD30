@@ -290,7 +290,7 @@ bool Adafruit_SCD30::read(void) {
     }
   }
   // CRCs are good, unpack floats
-  uint32_t co2, temp, hum;
+  uint32_t co2 = 0, temp = 0, hum = 0;
 
   co2 |= buffer[0];
   co2 <<= 8;
