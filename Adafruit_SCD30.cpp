@@ -94,7 +94,8 @@ bool Adafruit_SCD30::_init(int32_t sensor_id) {
 
   // first I2C xfer after reset can fail, double tapping seems to get by it
   if (!startContinuousMeasurement()) {
-    if (!startContinuousMeasurement()) return false;
+    if (!startContinuousMeasurement())
+      return false;
   }
   if (!setMeasurementInterval(2)) {
     return false;
