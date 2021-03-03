@@ -92,8 +92,10 @@ bool Adafruit_SCD30::_init(int32_t sensor_id) {
 
   reset();
 
+  // first I2C xfer after reset can fail, double tapping seems to get by it
   if (!startContinuousMeasurement()) {
-    return false;
+    if (!startContinuousMeasurement())
+      return false;
   }
   if (!setMeasurementInterval(2)) {
     return false;
@@ -409,7 +411,7 @@ void Adafruit_SCD30::fillTempEvent(sensors_event_t *temp, uint32_t timestamp) {
 
 /**************************************************************************/
 /*!
-    @brief  Gets the sensor_t data for the SCD30's tenperature
+    @brief  Gets the sensor_t data for the SCD30's humidity
 */
 /**************************************************************************/
 void Adafruit_SCD30_Humidity::getSensor(sensor_t *sensor) {
@@ -421,7 +423,7 @@ void Adafruit_SCD30_Humidity::getSensor(sensor_t *sensor) {
   sensor->name[sizeof(sensor->name) - 1] = 0;
   sensor->version = 1;
   sensor->sensor_id = _sensorID;
-  sensor->type = SENSOR_TYPE_PRESSURE;
+  sensor->type = SENSOR_TYPE_RELATIVE_HUMIDITY;
   sensor->min_delay = 0;
   sensor->min_value = 260;
   sensor->max_value = 1260;
