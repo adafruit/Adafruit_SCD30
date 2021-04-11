@@ -53,7 +53,7 @@ void setup(void) {
    * Setting an altitude offset will override any pressure offset.
    */
   // if (!scd30.setAltitudeOffset(110)){
-  //   Serial.println("Failed to set measurement interval");
+  //   Serial.println("Failed to set altitude offset");
   //   while(1){ delay(10);}
   // }
   Serial.print("Altitude offset: ");
