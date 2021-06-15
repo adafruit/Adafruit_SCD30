@@ -347,7 +347,9 @@ uint16_t Adafruit_SCD30::readRegister(uint16_t reg_address) {
   buffer[0] = (reg_address >> 8) & 0xFF;
   buffer[1] = reg_address & 0xFF;
   // the SCD30 really wants a stop before the read!
-  i2c_dev->write_then_read(buffer, 2, buffer, 2, true);
+  i2c_dev->write(buffer, 2);
+  delay(4); // delay between write and read specified by the datasheet
+  i2c_dev->read(buffer, 2);
   return (uint16_t)(buffer[0] << 8 | (buffer[1] & 0xFF));
 }
 
