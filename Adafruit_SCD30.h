@@ -157,9 +157,6 @@ private:
   uint16_t getAmbiendPressure(void);
   uint8_t computeCRC8(uint8_t data[], uint8_t len);
   uint16_t readRegister(uint16_t reg_address);
-  // static uint8_t crc8(const uint8_t *data, int len);
 };
-
-static uint8_t crc8(const uint8_t *data, int len);
 
 #endif

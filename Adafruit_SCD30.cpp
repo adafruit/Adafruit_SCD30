@@ -38,6 +38,8 @@
 
 #include "Adafruit_SCD30.h"
 
+static uint8_t crc8(const uint8_t *data, int len);
+
 /**
  * @brief Construct a new Adafruit_SCD30::Adafruit_SCD30 object
  *
@@ -266,9 +268,7 @@ uint16_t Adafruit_SCD30::getForcedCalibrationReference(void) {
  * @return true: success false: failure
  */
 bool Adafruit_SCD30::read(void) {
-
   uint8_t buffer[18];
-  uint8_t crc = 0;
 
   buffer[0] = (SCD30_CMD_READ_MEASUREMENT >> 8) & 0xFF;
   buffer[1] = SCD30_CMD_READ_MEASUREMENT & 0xFF;
@@ -283,7 +283,6 @@ bool Adafruit_SCD30::read(void) {
     return false;
   }
 
-  uint8_t crc_buffer[2];
   // loop through the bytes we read, 3 at a time for i=MSB, i+1=LSB, i+2=CRC
   for (uint8_t i = 0; i < 18; i += 3) {
     if (crc8(buffer + i, 2) != buffer[i + 2]) {
