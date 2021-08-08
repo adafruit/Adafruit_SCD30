@@ -38,6 +38,8 @@
 
 #include "Adafruit_SCD30.h"
 
+static uint8_t crc8(const uint8_t *data, int len);
+
 /**
  * @brief Construct a new Adafruit_SCD30::Adafruit_SCD30 object
  *
