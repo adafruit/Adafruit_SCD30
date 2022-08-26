@@ -16,7 +16,7 @@ To install, use the Arduino Library Manager and search for "Adafruit SCD30" and 
  * [Adafruit BusIO](https://github.com/adafruit/Adafruit_BusIO)
  * [Adafruit Unified Sensor Driver](https://github.com/adafruit/Adafruit_Sensor)
  * [Adafruit SSD1306](https://github.com/adafruit/Adafruit_SSD1306)
-p
+
 # Contributing
 
 Contributions are welcome! Please read our [Code of Conduct](https://github.com/adafruit/Adafruit_SCD30/blob/master/code-of-conduct.md)
