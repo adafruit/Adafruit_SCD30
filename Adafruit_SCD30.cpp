@@ -65,10 +65,13 @@ Adafruit_SCD30::~Adafruit_SCD30(void) {
  *            The Wire object to be used for I2C connections.
  *    @param  sensor_id
  *            The unique ID to differentiate the sensors from others
+ *    @param  pressure_offset_mbar
+ *            Ambient pressure offset (in mbar) to use when initializing; 0 to
+ *            deactivate pressure compensation.
  *    @return True if initialization was successful, otherwise false.
  */
 bool Adafruit_SCD30::begin(uint8_t i2c_address, TwoWire *wire,
-                           int32_t sensor_id) {
+                           int32_t sensor_id, int16_t pressure_offset_mbar) {
   if (i2c_dev) {
     delete i2c_dev; // remove old interface
   }
@@ -79,15 +82,18 @@ bool Adafruit_SCD30::begin(uint8_t i2c_address, TwoWire *wire,
     return false;
   }
 
-  return _init(sensor_id);
+  return _init(sensor_id, pressure_offset_mbar);
 }
 // bool Adafruit_SCD30::begin_UART(void){}
 
 /*!  @brief Initializer for post i2c init
  *   @param sensor_id Optional unique ID for the sensor set
+ *   @param pressure_offset_mbar
+ *          Ambient pressure offset (in mbar) to use when initializing; 0 to
+ *          deactivate pressure compensationn.
  *   @returns True if chip identified and initialized
  */
-bool Adafruit_SCD30::_init(int32_t sensor_id) {
+bool Adafruit_SCD30::_init(int32_t sensor_id, int16_t pressure_offset_mbar) {
 
   _sensorid_humidity = sensor_id;
   _sensorid_temp = sensor_id + 1;
@@ -95,8 +101,8 @@ bool Adafruit_SCD30::_init(int32_t sensor_id) {
   reset();
 
   // first I2C xfer after reset can fail, double tapping seems to get by it
-  if (!startContinuousMeasurement()) {
-    if (!startContinuousMeasurement())
+  if (!startContinuousMeasurement(pressure_offset_mbar)) {
+    if (!startContinuousMeasurement(pressure_offset_mbar))
       return false;
   }
   if (!setMeasurementInterval(2)) {

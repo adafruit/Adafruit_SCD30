@@ -98,7 +98,7 @@ public:
   ~Adafruit_SCD30();
 
   bool begin(uint8_t i2c_addr = SCD30_I2CADDR_DEFAULT, TwoWire *wire = &Wire,
-             int32_t sensor_id = 0);
+             int32_t sensor_id = 0, int16_t pressure_offset_mbar = 0);
 
   void reset(void);
   bool dataReady(void);
@@ -132,7 +132,7 @@ public:
   ;
 
 protected:
-  virtual bool _init(int32_t sensor_id);
+  virtual bool _init(int32_t sensor_id, int16_t pressure_offset_mbar);
 
   uint16_t _sensorid_humidity, ///< ID number for humidity
       _sensorid_temp;          ///< ID number for temperature
@@ -154,7 +154,6 @@ private:
   void fillTempEvent(sensors_event_t *temp, uint32_t timestamp);
   bool sendCommand(uint16_t command, uint16_t argument);
   bool sendCommand(uint16_t command);
-  uint16_t getAmbiendPressure(void);
   uint8_t computeCRC8(uint8_t data[], uint8_t len);
   uint16_t readRegister(uint16_t reg_address);
 };
